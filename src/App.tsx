@@ -1,19 +1,24 @@
-import { Button } from "@/components/ui/button"
+import { SiteHeader } from "@/components/layout/site-header"
+import { Gallery } from "@/components/gallery/gallery"
+import { SiteFooter } from "@/components/layout/site-footer"
 
 export function App() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
+    <div className="min-h-svh bg-background text-foreground">
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 sm:py-16 lg:px-10">
+        <section className="mb-12">
+          <h1 className="text-3x1 font-semibold tracking-tight sm:text-4xl">
+            Moments worth sharing.
+          </h1>
+          <p className="mt-3 text-base text-muted-foreground">
+            A collection of moments. Shared anonymously.
+          </p>
+        </section>
+        <Gallery />
+      </main>
+
+      <SiteFooter />
     </div>
   )
 }
