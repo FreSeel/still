@@ -27,6 +27,11 @@ export const mockGallery = [
     {
         id: "6",
         src: "/images/mountains.jpg",
-        alt: "A BMW GT in snow"
+        alt: "Mountain landscape"
+    },
+    {
+        id: "7",
+        src: "/images/fishes.jpg",
+        alt: "Clown fishes",
     }
 ];
