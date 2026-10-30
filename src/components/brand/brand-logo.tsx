@@ -7,6 +7,5 @@ export function BrandLogo() {
     >
       still.
     </a>
-    // ToDo: font for now uses native system font - adjust later for consistency
   )
 }
