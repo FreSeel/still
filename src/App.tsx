@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/layout/site-header"
 
 export function App() {
