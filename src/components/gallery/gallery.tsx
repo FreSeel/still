@@ -1,10 +1,26 @@
+import { mockGallery } from "@/data/mock-gallery"
+
 export function Gallery() {
   return (
     <section
       aria-label="Photo Gallery"
-      className="flex min-h-60 w-full items-center justify-center rounded-xl border border-dashed border-border"
+      className="w-full"
     >
-      <p className="text-sm text-muted-foreground">Gallery - coming soon</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {
+            mockGallery.map((image) => (
+                <div
+                    key={image.id}
+                    className="aspect-portrait overflow-hidden rounded-lg">
+                        <img
+                            src={image.src}
+                            alt={image.alt}
+                            loading="lazy"
+                            className="h-full w-full object-cover">
+                        </img>
+                    </div>
+        ))}
+      </div>
     </section>
   )
 }
