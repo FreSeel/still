@@ -1,4 +1,3 @@
-
 import { mockGallery } from "@/data/mock-gallery"
 
 import {
@@ -25,13 +24,14 @@ export function Gallery() {
                   loading="lazy"
                   className="h-full w-full object-cover"
                 />
+                <span className="absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-zinc-900/30 px-5 py-2 text-sm font-medium text-white backdrop-blur-sm">
+                  {image.alt}
+                </span>
               </button>
             </DialogTrigger>
 
             <DialogContent className="w-[95vw] sm:max-w-5xl">
-              <DialogTitle className="">
-                {image.alt}
-              </DialogTitle>
+              <DialogTitle className="">{image.alt}</DialogTitle>
 
               <img
                 src={image.src}
