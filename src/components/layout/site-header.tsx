@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 export function SiteHeader() {
   return (
     <header className="border-b border-border/60">
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6 lg:px-10">
+      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-6 lg:px-10">
         <BrandLogo />
 
         <div className="flex items-center gap-3">
