@@ -1,17 +1,17 @@
+use std::error::Error;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::error::Error;
 
+use image::ImageFormat;
 use tokio::fs::{self, OpenOptions};
 use tokio::io::AsyncWriteExt;
 use uuid::Uuid;
-use image::{ImageFormat, ImageReader, Limits};
 
-const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024; 
+const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024;
 
 pub async fn process_image(
     bytes: &[u8],
-    upload_dir: &Path
+    upload_dir: &Path,
 ) -> Result<PathBuf, Box<dyn Error + Send + Sync>> {
     let format = validate_image(bytes)?;
 
@@ -19,7 +19,7 @@ pub async fn process_image(
         ImageFormat::Png => "png",
         ImageFormat::Jpeg => "jpg",
         ImageFormat::WebP => "webp",
-        _ => return Err("Unsupported image format".into())
+        _ => return Err("Unsupported image format".into()),
     };
 
     let path = save_image(bytes, upload_dir, extension).await?;
@@ -35,18 +35,12 @@ pub fn validate_image(bytes: &[u8]) -> Result<ImageFormat, &'static str> {
     let format = image::guess_format(bytes).map_err(|_| "Invalid image format")?;
 
     match format {
-        ImageFormat::Png | ImageFormat::Jpeg | ImageFormat::WebP => {
-            Ok(format)
-        }
+        ImageFormat::Png | ImageFormat::Jpeg | ImageFormat::WebP => Ok(format),
         _ => Err("Unsupported image format"),
     }
 }
 
-pub async fn save_image(
-    bytes: &[u8],
-    upload_dir: &Path,
-    extension: &str,
-) -> io::Result<PathBuf> {
+pub async fn save_image(bytes: &[u8], upload_dir: &Path, extension: &str) -> io::Result<PathBuf> {
     fs::create_dir_all(upload_dir).await?;
 
     let filename = format!("{}.{}", Uuid::new_v4(), extension);
