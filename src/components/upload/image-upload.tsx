@@ -23,9 +23,27 @@ export function ImageUpload({ onChange }: ImageUploadProps) {
   }
 
   return (
-    <FileUpload value={files} onValueChange={handleChange} className="w-full">
-      <FileUploadDropzone>
-        <Upload />
+    <FileUpload
+      value={files}
+      onValueChange={handleChange}
+      className="w-full"
+      accept="image/jpeg,image/png,image/webp"
+      maxFiles={1}
+      maxSize={10 * 1024 * 1024}
+    >
+      <FileUploadDropzone className="flex min-h-80 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-muted-foreground p-6 text-center">
+        <Upload
+          className="mb-3 size-12 text-muted-foreground"
+          strokeWidth={1.75}
+        />
+
+        <p className="text-xl font-medium">
+          Drag and drop an image or click here to upload
+        </p>
+        <p className="text-muted-foreground">
+          Accepted formats: .jpeg, .png, .webp
+        </p>
+        <p className="text-muted-foreground">Max size: 10MB</p>
       </FileUploadDropzone>
       <FileUploadList>
         {files.map((file) => (
