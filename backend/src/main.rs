@@ -1,5 +1,6 @@
 mod handlers;
 mod routes;
+mod image_storage;
 
 use tokio::net::TcpListener;
 
