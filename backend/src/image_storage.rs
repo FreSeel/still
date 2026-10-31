@@ -1,5 +1,6 @@
 use std::io;
 use std::path::{Path, PathBuf};
+use std::error::Error;
 
 use tokio::fs::{self, OpenOptions};
 use tokio::io::AsyncWriteExt;
@@ -7,6 +8,24 @@ use uuid::Uuid;
 use image::{ImageFormat, ImageReader, Limits};
 
 const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024; 
+
+pub async fn process_image(
+    bytes: &[u8],
+    upload_dir: &Path
+) -> Result<PathBuf, Box<dyn Error + Send + Sync>> {
+    let format = validate_image(bytes)?;
+
+    let extension = match format {
+        ImageFormat::Png => "png",
+        ImageFormat::Jpeg => "jpg",
+        ImageFormat::WebP => "webp",
+        _ => return Err("Unsupported image format".into())
+    };
+
+    let path = save_image(bytes, upload_dir, extension).await?;
+
+    Ok(path)
+}
 
 pub fn validate_image(bytes: &[u8]) -> Result<ImageFormat, &'static str> {
     if bytes.len() > MAX_IMAGE_SIZE {
