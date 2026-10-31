@@ -2,11 +2,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ImageUpload } from "./image-upload"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 interface UploadDialogProps {
   open: boolean
@@ -24,6 +26,17 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
           <DialogDescription>Select an image to upload.</DialogDescription>
         </DialogHeader>
         <ImageUpload onChange={setImage} />
+        <DialogFooter>
+          <Button variant="outline">Cancel</Button>
+          <Button
+            disabled={!image}
+            onClick={() => {
+              // ToDo: Call API backend
+            }}
+          >
+            Upload Image
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
