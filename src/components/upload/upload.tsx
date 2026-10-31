@@ -5,6 +5,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ImageUpload } from "./image-upload"
+import { useState } from "react"
 
 interface UploadDialogProps {
   open: boolean
@@ -12,6 +14,8 @@ interface UploadDialogProps {
 }
 
 export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
+  const [image, setImage] = useState<File | null>(null)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -19,6 +23,7 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
           <DialogTitle>Upload Images</DialogTitle>
           <DialogDescription>Select an image to upload.</DialogDescription>
         </DialogHeader>
+        <ImageUpload onChange={setImage} />
       </DialogContent>
     </Dialog>
   )
