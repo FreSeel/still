@@ -1,7 +1,7 @@
 import { SiteHeader } from "@/components/layout/site-header"
 import { Gallery } from "@/components/gallery/gallery"
 import { SiteFooter } from "@/components/layout/site-footer"
-import { useState } from "react"
+import { Toaster } from "@/components/ui/toast"
 
 export function App() {
   return (
@@ -17,6 +17,7 @@ export function App() {
           </p>
         </section>
         <Gallery />
+        <Toaster />
       </main>
 
       <SiteFooter />

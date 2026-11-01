@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { GalleryTags } from "./gallery-tags"
 import { GalleryFilter } from "./gallery-filter"
+import { toast } from "@/components/ui/toast"
 
 interface GalleryImage {
   url: string
@@ -47,6 +48,10 @@ export function Gallery() {
     socket.onmessage = (event) => {
       if (event.data === "image_uploaded") {
         fetchImages()
+        toast.add({
+          type: "info",
+          description: "A new post was made",
+        })
       }
     }
 
