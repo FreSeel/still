@@ -3,11 +3,45 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use image::ImageFormat;
+use serde::{Deserialize, Serialize};
 use tokio::fs::{self, OpenOptions};
 use tokio::io::AsyncWriteExt;
 use uuid::Uuid;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ImageMetadata {
+    pub title: String,
+    pub tags: Vec<String>,
+}
+
 const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024;
+
+pub async fn save_metadata(
+    image_path: &Path,
+    metadata: &ImageMetadata,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let json_path = image_path.with_extension("json");
+    let json = serde_json::to_vec_pretty(metadata)?;
+
+    tokio::fs::write(json_path, json).await?;
+
+    Ok(())
+}
+
+pub async fn process_upload(
+    bytes: &[u8],
+    metadata: ImageMetadata,
+    upload_dir: &Path,
+) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+    let path = process_image(bytes, upload_dir).await?;
+
+    if let Err(err) = save_metadata(&path, &metadata).await {
+        let _ = tokio::fs::remove_file(&path).await;
+        return Err(err);
+    }
+
+    Ok(path)
+}
 
 pub async fn process_image(
     bytes: &[u8],
