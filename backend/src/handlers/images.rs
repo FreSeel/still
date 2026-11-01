@@ -30,7 +30,7 @@ pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
 
     let mut entries = fs::read_dir(&upload_dir)
         .await
-        .map_err(|_| {
+        .map_err(|err| {
             error!("Failed to read images directory: {err}");
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
@@ -39,7 +39,7 @@ pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
     while let Some(entry) = entries
         .next_entry()
         .await
-        .map_err(|_| {
+        .map_err(|err| {
             error!("Failed to read directory entry: {err}");
             StatusCode::INTERNAL_SERVER_ERROR})?
     {
