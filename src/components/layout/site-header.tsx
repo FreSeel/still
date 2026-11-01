@@ -4,11 +4,7 @@ import { Button } from "@/components/ui/button"
 import { UploadDialog } from "../upload/upload"
 import { useState } from "react"
 
-interface SiteHeaderProps {
-  onUploadSuccess: () => void
-}
-
-export function SiteHeader({ onUploadSuccess }: SiteHeaderProps) {
+export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   return (
@@ -37,11 +33,7 @@ export function SiteHeader({ onUploadSuccess }: SiteHeaderProps) {
             <Plus className="size-5" aria-hidden="true" />
             <span className="hidden sm:inline">Upload</span>
           </Button>
-          <UploadDialog
-            open={open}
-            onOpenChange={setOpen}
-            onUploadSuccess={onUploadSuccess}
-          />
+          <UploadDialog open={open} onOpenChange={setOpen} />
         </div>
       </div>
     </header>
