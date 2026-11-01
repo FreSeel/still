@@ -6,7 +6,7 @@ SMall Lightweight real time image gallery using **Rust** for the backend and **R
 
 ### Prerequisites
 
-- pnpm
+- pnpm + Node.js (v22.3.0)
 - Rust and Cargo
 
 ### Frontend
@@ -35,6 +35,20 @@ Vite proxy is configured to connect to the backend at `http://127.0.0.1:8080`
 
 <!-- Add Draw.io Diagram here -->
 
+For the frontend the following decisions were made:
+
+- Simple minimalist style (Apple-like inspired)
+- ShadCN was used to comfort, ease of use and previous knowledge
+- Basic Gallery design showcasing a few images that expands on addition
+
+For the backend the following decisions were made:
+
+- Tough decision between Go and Rust (due to language familiarity Rust was preferred)
+- Simple Backend: REST Endpoints as seen in the table below and local file storage
+- Axum for endpoints and Tokio for WebSockets
+- Images stored with the Json Metadata --> not the most effective way but due to project scope and ease of use
+  - A later implementation could use a proper database
+
 ### Frontend
 
 Built with React, TypeScript, Tailwind CSS and shadcn/ui components.
@@ -55,13 +69,13 @@ Built with Rust, Axum and Tokio.
 
 #### API Documentation
 
-| Endpoint             | Purpose                          | Response                |
-| -------------------- | -------------------------------- | ----------------------- |
-| GET /images          | Fetch initial feed, newest first | 200 Ok                  |
-| POST /uploads        | Upload and save an image         | 201 Created             |
-| GET /images/:id/file | Retrieve image contents          | 200 Ok                  |
-| GET /ws/images       | Establish WebSocket connection   | 101 Switching Protocols |
-| GET /health          | Backend health check             | 200 Ok                  |
+| Endpoint               | Purpose                          | Response                |
+| ---------------------- | -------------------------------- | ----------------------- |
+| GET /images            | Fetch initial feed, newest first | 200 Ok                  |
+| POST /uploads          | Upload and save an image         | 201 Created             |
+| GET /images/<filename> | Retrieve image contents          | 200 Ok                  |
+| GET /ws/images         | Establish WebSocket connection   | 101 Switching Protocols |
+| GET /health            | Backend health check             | 200 Ok                  |
 
 ### Storage
 
