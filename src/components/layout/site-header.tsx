@@ -18,7 +18,7 @@ export function SiteHeader() {
             variant="ghost"
             size="icon"
             disabled
-            aria-label="Toggle theme (WIP)"
+            aria-label="Toggle theme"
             className="size-12 shrink-0 rounded-full bg-black/25 text-foreground disabled:opacity-100"
           >
             <Moon className="size-5" aria-hidden="true" />
@@ -26,7 +26,7 @@ export function SiteHeader() {
 
           <Button
             type="button"
-            aria-label="Upload photo (WIP)"
+            aria-label="Upload photo"
             onClick={() => setOpen(true)}
             className="h-12 gap-2 rounded-full px-3 text-base font-medium disabled:opacity-100 sm:px-6"
           >

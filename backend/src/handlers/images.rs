@@ -1,9 +1,9 @@
 use axum::{Json, http::StatusCode};
 use serde::Serialize;
 use tokio::fs;
-use tracing::info;
+use tracing::{error, info};
 
-use crate::image_storage::ImageMetadata;
+use crate::image_storage::{ImageMetadata, images_dir};
 
 #[derive(Serialize)]
 pub struct FeedImage {
@@ -13,17 +13,31 @@ pub struct FeedImage {
 }
 
 pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
-    let upload_dir = "../public/images";
-    let mut entries = fs::read_dir(upload_dir)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let upload_dir = images_dir();
+
+    let is_new = !upload_dir.exists();
+
+    fs::create_dir_all(&upload_dir).await.map_err(|err| {
+        error!("Failed to initialize images directory: {err}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    if is_new {
+        info!("Created images directory: {}", upload_dir.display());
+    } else {
+        info!("Loaded existing images directory: {}", upload_dir.display());
+    }
+
+    let mut entries = fs::read_dir(&upload_dir).await.map_err(|err| {
+        error!("Failed to read images directory: {err}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let mut images = Vec::new();
 
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-    {
+    while let Some(entry) = entries.next_entry().await.map_err(|err| {
+        error!("Failed to read directory entry: {err}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })? {
         let path = entry.path();
 
         if path.extension().is_some_and(|ext| ext == "json") {
@@ -51,6 +65,8 @@ pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
     }
 
     images.sort_unstable_by(|a, b| b.0.cmp(&a.0));
+
+    info!("Fetched {} images", images.len());
 
     Ok(Json(images.into_iter().map(|(_, image)| image).collect()))
 }

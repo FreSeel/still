@@ -75,10 +75,11 @@ export function Gallery() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filteredGallery.map((image) => (
           <Dialog key={image.url}>
-            <DialogTrigger asChild>
-              <button
-                type="button"
-                className="relative block aspect-3/4 w-full overflow-hidden rounded-lg"
+            <div className="relative aspect-3/4 w-full overflow-hidden rounded-lg">
+              <DialogTrigger
+                render={
+                  <button type="button" className="block h-full w-full" />
+                }
               >
                 <img
                   src={image.url}
@@ -90,10 +91,10 @@ export function Gallery() {
                 <span className="absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-zinc-900/30 px-5 py-2 text-sm font-medium text-white backdrop-blur-sm">
                   {image.title}
                 </span>
+              </DialogTrigger>
 
-                <GalleryTags tags={image.tags} />
-              </button>
-            </DialogTrigger>
+              <GalleryTags tags={image.tags} />
+            </div>
 
             <DialogContent className="w-[95vw] sm:max-w-5xl">
               <DialogTitle>{image.title}</DialogTitle>
