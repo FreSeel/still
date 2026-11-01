@@ -82,6 +82,9 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
               maxLength={100}
               required
             />
+            {image && !title.trim() && (
+              <p className="text-xs text-destructive">A title is required.</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Tags (optional)</Label>
@@ -105,7 +108,10 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
           >
             Cancel
           </Button>
-          <Button disabled={!image || isUploading} onClick={handleUpload}>
+          <Button
+            disabled={!image || !title.trim() || isUploading}
+            onClick={handleUpload}
+          >
             {isUploading ? "Uploading..." : "Upload Image"}
           </Button>
         </DialogFooter>
