@@ -5,7 +5,7 @@ type GalleryTagsProps = {
   tags: string[]
 }
 
-export function GalleryTags({ tags }: GalleryTagsProps) {
+export function GalleryTags({ tags = [] }: GalleryTagsProps) {
   const [expanded, setExpanded] = useState(false)
   const tagsId = useId()
 
