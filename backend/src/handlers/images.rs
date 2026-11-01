@@ -28,21 +28,16 @@ pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
         info!("Loaded existing images directory: {}", upload_dir.display());
     }
 
-    let mut entries = fs::read_dir(&upload_dir)
-        .await
-        .map_err(|err| {
-            error!("Failed to read images directory: {err}");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+    let mut entries = fs::read_dir(&upload_dir).await.map_err(|err| {
+        error!("Failed to read images directory: {err}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let mut images = Vec::new();
 
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|err| {
-            error!("Failed to read directory entry: {err}");
-            StatusCode::INTERNAL_SERVER_ERROR})?
-    {
+    while let Some(entry) = entries.next_entry().await.map_err(|err| {
+        error!("Failed to read directory entry: {err}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })? {
         let path = entry.path();
 
         if path.extension().is_some_and(|ext| ext == "json") {

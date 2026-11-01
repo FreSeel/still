@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
 };
 use tokio::sync::broadcast;
+use tracing::{error, warn};
 
 use crate::image_storage::{ImageMetadata, images_dir, process_upload};
 
@@ -28,6 +29,7 @@ pub async fn upload_image(
     }
 
     let (Some(bytes), Some(title)) = (bytes, title) else {
+        warn!("Upload rejected: missing file or title");
         return (StatusCode::BAD_REQUEST, "Missing file or title".into());
     };
 
@@ -38,10 +40,16 @@ pub async fn upload_image(
             let _ = tx.send("image_uploaded");
             (StatusCode::CREATED, path.display().to_string())
         }
-        Err(err) if err.is::<std::io::Error>() => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to save upload".into(),
-        ),
-        Err(err) => (StatusCode::BAD_REQUEST, err.to_string()),
+        Err(err) if err.is::<std::io::Error>() => {
+            error!("Failed to save upload: {err}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to save upload".into(),
+            )
+        }
+        Err(err) => {
+            warn!("Upload rejected: {err}");
+            (StatusCode::BAD_REQUEST, err.to_string())
+        }
     }
 }
