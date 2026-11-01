@@ -17,6 +17,10 @@ pub struct ImageMetadata {
 
 const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024;
 
+pub fn images_dir() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../public/images")
+}
+
 pub async fn save_metadata(
     image_path: &Path,
     metadata: &ImageMetadata,

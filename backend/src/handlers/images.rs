@@ -1,9 +1,9 @@
 use axum::{Json, http::StatusCode};
 use serde::Serialize;
 use tokio::fs;
-use tracing::info;
+use tracing::{error, info};
 
-use crate::image_storage::ImageMetadata;
+use crate::image_storage::{ImageMetadata, images_dir};
 
 #[derive(Serialize)]
 pub struct FeedImage {
@@ -13,8 +13,14 @@ pub struct FeedImage {
 }
 
 pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
-    let upload_dir = "../public/images";
-    let mut entries = fs::read_dir(upload_dir)
+    let upload_dir = images_dir();
+
+    fs::create_dir_all(&upload_dir).await.map_err(|err| {
+        error!("Failed to initialize images directory: {err}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    let mut entries = fs::read_dir(&upload_dir)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let mut images = Vec::new();

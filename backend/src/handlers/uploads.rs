@@ -1,12 +1,10 @@
-use std::path::Path;
-
 use axum::{
     extract::{Multipart, State},
     http::StatusCode,
 };
 use tokio::sync::broadcast;
 
-use crate::image_storage::{ImageMetadata, process_upload};
+use crate::image_storage::{ImageMetadata, images_dir, process_upload};
 
 pub async fn upload_image(
     State(tx): State<broadcast::Sender<&'static str>>,
@@ -35,7 +33,7 @@ pub async fn upload_image(
 
     let metadata = ImageMetadata { title, tags };
 
-    match process_upload(&bytes, metadata, Path::new("../public/images")).await {
+    match process_upload(&bytes, metadata, &images_dir()).await {
         Ok(path) => {
             let _ = tx.send("image_uploaded");
             (StatusCode::CREATED, path.display().to_string())
