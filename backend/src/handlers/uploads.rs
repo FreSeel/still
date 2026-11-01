@@ -1,10 +1,17 @@
 use std::path::Path;
 
-use axum::{extract::Multipart, http::StatusCode};
+use axum::{
+    extract::{Multipart, State},
+    http::StatusCode,
+};
+use tokio::sync::broadcast;
 
 use crate::image_storage::{ImageMetadata, process_upload};
 
-pub async fn upload_image(mut multipart: Multipart) -> (StatusCode, String) {
+pub async fn upload_image(
+    State(tx): State<broadcast::Sender<&'static str>>,
+    mut multipart: Multipart,
+) -> (StatusCode, String) {
     let mut bytes = None;
     let mut title = None;
     let mut tags = Vec::new();
@@ -29,7 +36,10 @@ pub async fn upload_image(mut multipart: Multipart) -> (StatusCode, String) {
     let metadata = ImageMetadata { title, tags };
 
     match process_upload(&bytes, metadata, Path::new("../public/images")).await {
-        Ok(path) => (StatusCode::CREATED, path.display().to_string()),
+        Ok(path) => {
+            let _ = tx.send("image_uploaded");
+            (StatusCode::CREATED, path.display().to_string())
+        }
         Err(err) if err.is::<std::io::Error>() => (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Failed to save upload".into(),
