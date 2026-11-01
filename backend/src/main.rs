@@ -7,6 +7,7 @@ use tokio::net::TcpListener;
 #[tokio::main]
 async fn main() {
     let app = routes::router();
+    tracing_subscriber::fmt::init();
 
     let listener = TcpListener::bind("127.0.0.1:8080")
         .await

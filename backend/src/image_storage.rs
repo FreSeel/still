@@ -6,6 +6,7 @@ use image::ImageFormat;
 use serde::{Deserialize, Serialize};
 use tokio::fs::{self, OpenOptions};
 use tokio::io::AsyncWriteExt;
+use tracing::{error, info};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -33,12 +34,26 @@ pub async fn process_upload(
     metadata: ImageMetadata,
     upload_dir: &Path,
 ) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
-    let path = process_image(bytes, upload_dir).await?;
+    let path = match process_image(bytes, upload_dir).await {
+        Ok(path) => path,
+        Err(err) => {
+            error!("Image processing failed: {err}");
+            return Err(err);
+        }
+    };
 
     if let Err(err) = save_metadata(&path, &metadata).await {
+        error!("Failed to save metadata: {err}");
         let _ = tokio::fs::remove_file(&path).await;
         return Err(err);
     }
+
+    info!(
+        "Image uploaded successfully: {} ({} bytes, {} tags)",
+        path.display(),
+        bytes.len(),
+        metadata.tags.len()
+    );
 
     Ok(path)
 }
