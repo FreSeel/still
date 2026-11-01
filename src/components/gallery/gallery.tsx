@@ -15,11 +15,7 @@ interface GalleryImage {
   tags: string[]
 }
 
-interface GalleryProps {
-  refreshKey: number
-}
-
-export function Gallery({ refreshKey }: GalleryProps) {
+export function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [tagQuery, setTagQuery] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -35,13 +31,27 @@ export function Gallery({ refreshKey }: GalleryProps) {
 
         const data: GalleryImage[] = await response.json()
         setImages(data)
+        setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong")
       }
     }
 
     fetchImages()
-  }, [refreshKey])
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+    const socket = new WebSocket(
+      `${protocol}//${window.location.host}/api/ws/images`
+    )
+
+    socket.onmessage = (event) => {
+      if (event.data === "image_uploaded") {
+        fetchImages()
+      }
+    }
+
+    return () => socket.close()
+  }, [])
 
   const filteredGallery = images.filter((image) => {
     const query = tagQuery.trim().toLowerCase()

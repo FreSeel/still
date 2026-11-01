@@ -4,10 +4,9 @@ import { SiteFooter } from "@/components/layout/site-footer"
 import { useState } from "react"
 
 export function App() {
-  const [refreshKey, setRefreshkey] = useState(0)
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <SiteHeader onUploadSuccess={() => setRefreshkey((prev) => prev + 1)} />
+      <SiteHeader />
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 sm:py-16 lg:px-10">
         <section className="mb-12">
           <h1 className="text-3x1 font-semibold tracking-tight sm:text-4xl">
@@ -17,7 +16,7 @@ export function App() {
             A collection of moments. Shared anonymously.
           </p>
         </section>
-        <Gallery refreshKey={refreshKey} />
+        <Gallery />
       </main>
 
       <SiteFooter />
