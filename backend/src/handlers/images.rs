@@ -15,10 +15,18 @@ pub struct FeedImage {
 pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
     let upload_dir = images_dir();
 
+    let is_new = !upload_dir.exists();
+
     fs::create_dir_all(&upload_dir).await.map_err(|err| {
         error!("Failed to initialize images directory: {err}");
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
+
+    if is_new {
+        info!("Created images directory: {}", upload_dir.display());
+    } else {
+        info!("Loaded existing images directory: {}", upload_dir.display());
+    }
 
     let mut entries = fs::read_dir(&upload_dir)
         .await
