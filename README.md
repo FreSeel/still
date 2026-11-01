@@ -33,7 +33,7 @@ Vite proxy is configured to connect to the backend at `http://127.0.0.1:8080`
 
 ## Design Decisions
 
-<!-- Add Draw.io Diagram here -->
+![Project Preview](./still.svg)
 
 For the frontend the following decisions were made:
 
