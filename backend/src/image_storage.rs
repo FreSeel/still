@@ -102,6 +102,7 @@ pub async fn save_image(bytes: &[u8], upload_dir: &Path, extension: &str) -> io:
         .await?;
 
     file.write_all(bytes).await?;
+    file.flush().await?;
 
     Ok(filepath)
 }
