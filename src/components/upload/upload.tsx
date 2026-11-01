@@ -15,9 +15,14 @@ import { Input } from "@/components/ui/input"
 interface UploadDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onUploadSuccess: () => void
 }
 
-export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
+export function UploadDialog({
+  open,
+  onOpenChange,
+  onUploadSuccess,
+}: UploadDialogProps) {
   const [image, setImage] = useState<File | null>(null)
   const [tags, setTags] = useState("")
   const [title, setTitle] = useState("")
@@ -54,6 +59,7 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
       setTitle("")
       setTags("")
       onOpenChange(false)
+      onUploadSuccess()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed")
     } finally {

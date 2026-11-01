@@ -15,7 +15,11 @@ interface GalleryImage {
   tags: string[]
 }
 
-export function Gallery() {
+interface GalleryProps {
+  refreshKey: number
+}
+
+export function Gallery({ refreshKey }: GalleryProps) {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [tagQuery, setTagQuery] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +41,7 @@ export function Gallery() {
     }
 
     fetchImages()
-  }, [])
+  }, [refreshKey])
 
   const filteredGallery = images.filter((image) => {
     const query = tagQuery.trim().toLowerCase()
