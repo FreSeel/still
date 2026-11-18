@@ -78,3 +78,50 @@ async fn upload_valid_image_returns_created() {
     assert_eq!(metadata.title, "Test Image");
     assert_eq!(metadata.tags, vec!["rust", "testing"]);
 }
+
+
+#[tokio::test]
+async fn upload_missing_file_returns_bad_request() {
+    // Arrange: create isolated storage
+    let temp_dir = tempfile::tempdir()
+        .expect("Failed to create temporary directory");
+
+    let app = router_with_images_dir(
+        temp_dir.path().to_path_buf()
+    );
+
+    let server = TestServer::try_new(app)
+        .expect("Failed to create test server");
+
+    // Multipart form with title and tags, but no file
+    let form = MultipartForm::new()
+        .add_text("title", "Test Image")
+        .add_text("tags", "rust");
+
+    // Act: submit invalid upload
+    let response = server
+        .post("/uploads")
+        .multipart(form)
+        .await;
+
+    // Assert: correct HTTP status
+    response.assert_status(StatusCode::BAD_REQUEST);
+
+    // Assert: correct error message
+    assert_eq!(
+        response.text(),
+        "Missing file or title"
+    );
+
+    // Assert: no files were written
+    let mut entries = tokio::fs::read_dir(temp_dir.path())
+        .await
+        .expect("Failed to read temporary directory");
+
+    assert!(
+        entries.next_entry().await
+            .expect("Failed to inspect directory")
+            .is_none(),
+        "Upload should not create files when file is missing"
+    );
+}
