@@ -204,6 +204,39 @@ async fn upload_invalid_image_returns_bad_request() {
 }
 
 #[tokio::test]
+async fn upload_corrupted_image_returns_bad_request() {
+    // Arrange: the PNG signature is valid, but the remaining data is corrupt
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+    let server = create_test_server(temp_dir.path().to_path_buf());
+    let corrupted_png = b"\x89PNG\r\n\x1a\ninvalid data";
+
+    let form = MultipartForm::new()
+        .add_part(
+            "file",
+            Part::bytes(corrupted_png.to_vec())
+                .file_name("corrupted.png")
+                .mime_type("image/png"),
+        )
+        .add_text("title", "Corrupted Image");
+
+    // Act
+    let response = server.post("/uploads").multipart(form).await;
+
+    // Assert: recognizing the signature is not enough to accept the image
+    response.assert_status(StatusCode::BAD_REQUEST);
+    assert_eq!(response.text(), "Invalid image data");
+
+    let mut entries = tokio::fs::read_dir(temp_dir.path())
+        .await
+        .expect("Failed to read temporary directory");
+
+    assert!(
+        entries.next_entry().await.unwrap().is_none(),
+        "Corrupted upload should not create files"
+    );
+}
+
+#[tokio::test]
 async fn upload_unsupported_format_returns_bad_request() {
     // Arrange
     let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");

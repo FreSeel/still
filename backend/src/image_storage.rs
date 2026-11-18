@@ -91,9 +91,13 @@ pub fn validate_image(bytes: &[u8]) -> Result<ImageFormat, &'static str> {
     let format = image::guess_format(bytes).map_err(|_| "Invalid image format")?;
 
     match format {
-        ImageFormat::Png | ImageFormat::Jpeg | ImageFormat::WebP => Ok(format),
-        _ => Err("Unsupported image format"),
+        ImageFormat::Png | ImageFormat::Jpeg | ImageFormat::WebP => {}
+        _ => return Err("Unsupported image format"),
     }
+
+    image::load_from_memory_with_format(bytes, format).map_err(|_| "Invalid image data")?;
+
+    Ok(format)
 }
 
 pub async fn save_image(bytes: &[u8], upload_dir: &Path, extension: &str) -> io::Result<PathBuf> {
