@@ -1,14 +1,16 @@
 use axum::{
+    Extension,
     extract::{Multipart, State},
     http::StatusCode,
 };
 use tokio::sync::broadcast;
 use tracing::{error, warn};
 
-use crate::image_storage::{ImageMetadata, images_dir, process_upload};
+use crate::image_storage::{ImageMetadata, process_upload, UploadDir};
 
 pub async fn upload_image(
     State(tx): State<broadcast::Sender<&'static str>>,
+    Extension(UploadDir(upload_dir)): Extension<UploadDir>,
     mut multipart: Multipart,
 ) -> (StatusCode, String) {
     let mut bytes = None;
@@ -35,7 +37,7 @@ pub async fn upload_image(
 
     let metadata = ImageMetadata { title, tags };
 
-    match process_upload(&bytes, metadata, &images_dir()).await {
+    match process_upload(&bytes, metadata, &upload_dir).await {
         Ok(path) => {
             let _ = tx.send("image_uploaded");
             (StatusCode::CREATED, path.display().to_string())

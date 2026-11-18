@@ -15,6 +15,9 @@ pub struct ImageMetadata {
     pub tags: Vec<String>,
 }
 
+#[derive(Clone)]
+pub struct UploadDir(pub PathBuf);
+
 const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024;
 
 pub fn images_dir() -> std::path::PathBuf {
