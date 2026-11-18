@@ -11,22 +11,14 @@ use super::router_with_images_dir;
 use crate::image_storage::ImageMetadata;
 
 fn create_test_server(storage_dir: PathBuf) -> TestServer {
-    TestServer::try_new(
-        router_with_images_dir(storage_dir)
-    )
-    .expect("Failed to create test server")
+    TestServer::try_new(router_with_images_dir(storage_dir)).expect("Failed to create test server")
 }
 
 fn create_test_png() -> Vec<u8> {
     let mut bytes = Vec::new();
 
     PngEncoder::new(&mut bytes)
-        .write_image(
-            &[255, 0, 0, 255],
-            1,
-            1,
-            ExtendedColorType::Rgba8,
-        )
+        .write_image(&[255, 0, 0, 255], 1, 1, ExtendedColorType::Rgba8)
         .expect("Failed to generate test PNG");
 
     bytes
@@ -95,12 +87,10 @@ async fn upload_valid_image_returns_created() {
     assert_eq!(metadata.tags, vec!["rust", "testing"]);
 }
 
-
 #[tokio::test]
 async fn upload_missing_file_returns_bad_request() {
     // Arrange: create isolated storage
-    let temp_dir = tempfile::tempdir()
-        .expect("Failed to create temporary directory");
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
 
     let server = create_test_server(temp_dir.path().to_path_buf());
 
@@ -110,19 +100,13 @@ async fn upload_missing_file_returns_bad_request() {
         .add_text("tags", "rust");
 
     // Act: submit invalid upload
-    let response = server
-        .post("/uploads")
-        .multipart(form)
-        .await;
+    let response = server.post("/uploads").multipart(form).await;
 
     // Assert: correct HTTP status
     response.assert_status(StatusCode::BAD_REQUEST);
 
     // Assert: correct error message
-    assert_eq!(
-        response.text(),
-        "Missing file or title"
-    );
+    assert_eq!(response.text(), "Missing file or title");
 
     // Assert: no files were written
     let mut entries = tokio::fs::read_dir(temp_dir.path())
@@ -130,19 +114,19 @@ async fn upload_missing_file_returns_bad_request() {
         .expect("Failed to read temporary directory");
 
     assert!(
-        entries.next_entry().await
+        entries
+            .next_entry()
+            .await
             .expect("Failed to inspect directory")
             .is_none(),
         "Upload should not create files when file is missing"
     );
 }
 
-
 #[tokio::test]
 async fn upload_missing_title_returns_bad_request() {
     // Arrange: isolated storage
-    let temp_dir = tempfile::tempdir()
-        .expect("Failed to create temporary directory");
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
 
     let server = create_test_server(temp_dir.path().to_path_buf());
 
@@ -160,18 +144,12 @@ async fn upload_missing_title_returns_bad_request() {
         .add_text("tags", "rust");
 
     // Act
-    let response = server
-        .post("/uploads")
-        .multipart(form)
-        .await;
+    let response = server.post("/uploads").multipart(form).await;
 
     // Assert: correct error response
     response.assert_status(StatusCode::BAD_REQUEST);
 
-    assert_eq!(
-        response.text(),
-        "Missing file or title"
-    );
+    assert_eq!(response.text(), "Missing file or title");
 
     // Assert: no files were created
     let mut entries = tokio::fs::read_dir(temp_dir.path())
@@ -179,9 +157,90 @@ async fn upload_missing_title_returns_bad_request() {
         .expect("Failed to read temporary directory");
 
     assert!(
-        entries.next_entry().await
+        entries
+            .next_entry()
+            .await
             .expect("Failed to inspect directory")
             .is_none(),
         "Upload should not create files when title is missing"
+    );
+}
+
+#[tokio::test]
+async fn upload_invalid_image_returns_bad_request() {
+    // Arrange: isolated storage
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+
+    let server = TestServer::try_new(router_with_images_dir(temp_dir.path().to_path_buf()))
+        .expect("Failed to create test server");
+
+    // File claims to be PNG, but contains plain text
+    let form = MultipartForm::new()
+        .add_part(
+            "file",
+            Part::bytes(b"not an actual image".to_vec())
+                .file_name("fake.png")
+                .mime_type("image/png"),
+        )
+        .add_text("title", "Invalid Image")
+        .add_text("tags", "testing");
+
+    // Act
+    let response = server.post("/uploads").multipart(form).await;
+
+    // Assert: validation failure
+    response.assert_status(StatusCode::BAD_REQUEST);
+    assert_eq!(response.text(), "Invalid image format");
+
+    // Assert: no image or metadata was persisted
+    let mut entries = tokio::fs::read_dir(temp_dir.path())
+        .await
+        .expect("Failed to read temporary directory");
+
+    assert!(
+        entries.next_entry().await.unwrap().is_none(),
+        "Invalid upload should not create files"
+    );
+}
+
+#[tokio::test]
+async fn upload_unsupported_format_returns_bad_request() {
+    // Arrange
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+
+    let server = TestServer::try_new(router_with_images_dir(temp_dir.path().to_path_buf()))
+        .expect("Failed to create test server");
+
+    // Valid 1x1 GIF image
+    let gif_bytes = vec![
+        0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0xFF, 0xFF, 0xFF, 0x21, 0xF9, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x00,
+        0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44, 0x01, 0x00, 0x3B,
+    ];
+
+    let form = MultipartForm::new()
+        .add_part(
+            "file",
+            Part::bytes(gif_bytes)
+                .file_name("test.gif")
+                .mime_type("image/gif"),
+        )
+        .add_text("title", "Unsupported Image");
+
+    // Act
+    let response = server.post("/uploads").multipart(form).await;
+
+    // Assert: format explicitly rejected
+    response.assert_status(StatusCode::BAD_REQUEST);
+    assert_eq!(response.text(), "Unsupported image format");
+
+    // Assert: no files persisted
+    let mut entries = tokio::fs::read_dir(temp_dir.path())
+        .await
+        .expect("Failed to read temporary directory");
+
+    assert!(
+        entries.next_entry().await.unwrap().is_none(),
+        "Unsupported upload should not create files"
     );
 }
