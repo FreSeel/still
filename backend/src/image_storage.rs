@@ -117,3 +117,81 @@ pub async fn save_image(bytes: &[u8], upload_dir: &Path, extension: &str) -> io:
 
     Ok(filepath)
 }
+
+#[cfg(test)]
+mod tests {
+    use axum::http::StatusCode;
+    use axum_test::{
+        TestServer,
+        multipart::{MultipartForm, Part},
+    };
+    use image::{ExtendedColorType, ImageEncoder, codecs::png::PngEncoder};
+
+    use crate::routes::router_with_images_dir;
+
+    #[tokio::test]
+    async fn upload_storage_failure_returns_internal_error() {
+    // Arrange: create isolated temporary storage
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+
+    // Create a regular file where the upload directory should be
+    let blocked_path = temp_dir.path().join("blocked_storage");
+    let original_content = b"existing file";
+
+    tokio::fs::write(&blocked_path, original_content)
+        .await
+        .expect("Failed to create blocking file");
+
+    // Configure the application with the invalid directory
+    let server = TestServer::try_new(router_with_images_dir(blocked_path.clone()))
+        .expect("Failed to create test server");
+
+    // Generate a valid PNG so validation succeeds
+    let mut image_bytes = Vec::new();
+
+    PngEncoder::new(&mut image_bytes)
+        .write_image(&[255, 0, 0, 255], 1, 1, ExtendedColorType::Rgba8)
+        .expect("Failed to generate test image");
+
+    let form = MultipartForm::new()
+        .add_part(
+            "file",
+            Part::bytes(image_bytes)
+                .file_name("test.png")
+                .mime_type("image/png"),
+        )
+        .add_text("title", "Storage Failure Test")
+        .add_text("tags", "testing");
+
+    // Act
+    let response = server.post("/uploads").multipart(form).await;
+
+    // Assert: internal server error
+    response.assert_status(StatusCode::INTERNAL_SERVER_ERROR);
+
+    assert_eq!(response.text(), "Failed to save upload");
+
+    // Assert: existing file remains unchanged
+    let stored_content = tokio::fs::read(&blocked_path)
+        .await
+        .expect("Blocking file should still exist");
+
+    assert_eq!(stored_content, original_content);
+
+    // Assert: no additional files were created
+    let mut entries = tokio::fs::read_dir(temp_dir.path())
+        .await
+        .expect("Failed to inspect temporary directory");
+
+    let mut entry_count = 0;
+
+    while entries.next_entry().await.unwrap().is_some() {
+        entry_count += 1;
+    }
+
+        assert_eq!(
+            entry_count, 1,
+            "Failed upload should not create additional files"
+        );
+    }
+}
