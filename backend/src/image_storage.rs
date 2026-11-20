@@ -49,10 +49,23 @@ pub async fn process_upload(
         }
     };
 
-    if let Err(err) = save_metadata(&path, &metadata).await {
-        error!("Failed to save metadata: {err}");
-        let _ = tokio::fs::remove_file(&path).await;
-        return Err(err);
+    if let Err(metadata_err) = save_metadata(&path, &metadata).await {
+        error!("Failed to save metadata: {metadata_err}");
+
+        if let Err(rollback_err) = tokio::fs::remove_file(&path).await {
+            let err = io::Error::new(
+                rollback_err.kind(),
+                format!(
+                    "Failed to save metadata: {metadata_err}; failed to remove image {} during rollback: {rollback_err}",
+                    path.display()
+                ),
+            );
+
+            error!("Upload rollback failed: {err}");
+            return Err(err.into());
+        }
+
+        return Err(metadata_err);
     }
 
     info!(
