@@ -277,3 +277,69 @@ async fn upload_unsupported_format_returns_bad_request() {
         "Unsupported upload should not create files"
     );
 }
+
+#[tokio::test]
+async fn get_uploaded_image_returns_correct_content() {
+    // Arrange: isolated storage
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+
+    let server = TestServer::try_new(router_with_images_dir(temp_dir.path().to_path_buf()))
+        .expect("Failed to create test server");
+
+    // Generate a valid PNG
+    let image_bytes = create_test_png();
+
+    let form = MultipartForm::new()
+        .add_part(
+            "file",
+            Part::bytes(image_bytes.clone())
+                .file_name("test.png")
+                .mime_type("image/png"),
+        )
+        .add_text("title", "Retrieval Test")
+        .add_text("tags", "testing");
+
+    // Act: upload image
+    let upload_response = server.post("/uploads").multipart(form).await;
+
+    upload_response.assert_status(StatusCode::CREATED);
+
+    // Extract the generated filename
+    let uploaded_path = PathBuf::from(upload_response.text());
+
+    let filename = uploaded_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .expect("Invalid uploaded filename");
+
+    // Act: retrieve image through the API
+    let response = server.get(&format!("/images/{filename}")).await;
+
+    // Assert: HTTP status
+    response.assert_status(StatusCode::OK);
+
+    // Assert: correct content type
+    response.assert_header(axum::http::header::CONTENT_TYPE, "image/png");
+
+    // Assert: exact image bytes
+    assert_eq!(
+        response.as_bytes().as_ref(),
+        image_bytes.as_slice(),
+        "Retrieved image differs from uploaded image"
+    );
+}
+
+#[tokio::test]
+async fn get_nonexistent_image_returns_not_found() {
+    // Arrange: isolated empty storage
+    let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+
+    let server = TestServer::try_new(router_with_images_dir(temp_dir.path().to_path_buf()))
+        .expect("Failed to create test server");
+
+    // Act: request a nonexistent image
+    let response = server.get("/images/nonexistent.png").await;
+
+    // Assert: file not found
+    response.assert_status(StatusCode::NOT_FOUND);
+}
