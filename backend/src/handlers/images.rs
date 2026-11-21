@@ -1,9 +1,9 @@
-use axum::{Json, http::StatusCode};
+use axum::{Extension, Json, http::StatusCode};
 use serde::Serialize;
 use tokio::fs;
 use tracing::{error, info};
 
-use crate::image_storage::{ImageMetadata, images_dir};
+use crate::image_storage::{ImageMetadata, UploadDir};
 
 #[derive(Serialize)]
 pub struct FeedImage {
@@ -12,9 +12,9 @@ pub struct FeedImage {
     pub metadata: ImageMetadata,
 }
 
-pub async fn get_images() -> Result<Json<Vec<FeedImage>>, StatusCode> {
-    let upload_dir = images_dir();
-
+pub async fn get_images(
+    Extension(UploadDir(upload_dir)): Extension<UploadDir>,
+) -> Result<Json<Vec<FeedImage>>, StatusCode> {
     let is_new = !upload_dir.exists();
 
     fs::create_dir_all(&upload_dir).await.map_err(|err| {

@@ -1,7 +1,4 @@
-mod handlers;
-mod image_storage;
-mod routes;
-
+use still_backend::routes;
 use tokio::net::TcpListener;
 
 #[tokio::main]

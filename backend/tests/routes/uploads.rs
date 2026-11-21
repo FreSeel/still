@@ -7,8 +7,7 @@ use axum_test::{
 };
 use image::{ExtendedColorType, ImageEncoder, codecs::png::PngEncoder};
 
-use super::router_with_images_dir;
-use crate::image_storage::ImageMetadata;
+use still_backend::{image_storage::ImageMetadata, routes::router_with_images_dir};
 
 fn create_test_server(storage_dir: PathBuf) -> TestServer {
     TestServer::try_new(router_with_images_dir(storage_dir)).expect("Failed to create test server")

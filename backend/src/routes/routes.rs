@@ -18,7 +18,8 @@ pub fn router() -> Router {
     router_with_images_dir(images_dir())
 }
 
-pub(crate) fn router_with_images_dir(storage_dir: PathBuf) -> Router {
+#[doc(hidden)]
+pub fn router_with_images_dir(storage_dir: PathBuf) -> Router {
     let (tx, _) = broadcast::channel::<&'static str>(16);
 
     Router::new()
